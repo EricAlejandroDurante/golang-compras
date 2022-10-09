@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"reflect"
-	"strconv"
 	"strings"
 	//"tarea_1_sds/models"
 )
@@ -74,7 +73,7 @@ loopMain:
 		case "1":
 			UserOption()
 		case "2":
-			AdminLog("12345678")
+			AdminLog("1234")
 		case "3":
 			break loopMain
 		}
@@ -101,7 +100,7 @@ func UserOption() {
 	var accesoResponse AccesoResponse
 	json.Unmarshal(bytes, &accesoResponse)
 	if accesoResponse.Acceso_valido == true {
-		fmt.Println("Inicio de sesion exitoso")
+		fmt.Println("Inicio de sesión exitoso")
 		OpcionesClientes(id)
 	} else {
 		fmt.Println("Error, no hay ninguna coincidencia con los datos ingresados.")
@@ -112,8 +111,8 @@ func OpcionesClientes(id int) {
 testLoop:
 	for {
 		fmt.Printf("\n")
-		fmt.Println("Opciones:\n1. Ver lista de productos\n2. Hacer compra\n3 Salir")
-		fmt.Printf("Ingrese una opcion: ")
+		fmt.Println("Opciones:\n1. Ver lista de productos\n2. Hacer compra\n3. Salir")
+		fmt.Printf("Ingrese una opción: ")
 		var opcion string
 		fmt.Scan(&opcion)
 		switch opcion {
@@ -170,14 +169,15 @@ func hacerCompra(id int) {
 		_, _ = fmt.Sscan(comando[0], &id_producto)
 		_, _ = fmt.Sscan(comando[1], &cantidad)
 
-		for _, objeto := range producto {
-			if objeto.Id_producto == id_producto {
-				montototalAux += objeto.Precio_unitario * cantidad
-				cantidad_nueva = objeto.Cantidad_disponible - cantidad
+		for i := 0; i < len(producto); i++ {
+			if producto[i].Id_producto == id_producto {
+				montototalAux += producto[i].Precio_unitario * cantidad
+				cantidad_nueva = producto[i].Cantidad_disponible - cantidad
 				if cantidad_nueva >= 0 {
-					prod.Precio = objeto.Precio_unitario
-					prod.Nombre = objeto.Nombre
+					prod.Precio = producto[i].Precio_unitario
+					prod.Nombre = producto[i].Nombre
 					prod.Cantidad = cantidad_nueva
+					producto[i].Cantidad_disponible = cantidad_nueva
 				}
 			}
 		}
@@ -191,16 +191,6 @@ func hacerCompra(id int) {
 		detalle.Id_producto = id_producto
 		detalle.Cantidad = cantidad
 		compra.Productos = append(compra.Productos, detalle)
-		str := strconv.Itoa(id_producto)
-
-		url := "http://127.0.0.1:5000/api/productos/" + str
-
-		jsonProd, _ := json.Marshal(prod)
-		req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(jsonProd))
-		req.Header.Set("Accept", "application/json")
-		client := &http.Client{}
-		resp, _ := client.Do(req)
-		defer resp.Body.Close()
 		suma += cantidad
 	}
 
@@ -266,7 +256,7 @@ func Estadisticas() {
 	body, _ := io.ReadAll(resp.Body)
 	bytes := []byte(body)
 	json.Unmarshal(bytes, &respuesta)
-	fmt.Printf("Producto mas vendido: %d\n", respuesta.Producto_mas_vendido)
+	fmt.Printf("Producto más vendido: %d\n", respuesta.Producto_mas_vendido)
 	fmt.Printf("Producto menos vendido: %d\n", respuesta.Producto_menos_vendido)
 	fmt.Printf("Producto mayor ganancia: %d\n", respuesta.Producto_mayor_ganancia)
 	fmt.Printf("Producto menor ganancia: %d\n", respuesta.Producto_menor_ganancia)
@@ -288,7 +278,7 @@ opcionesLoop:
 	for {
 		fmt.Printf("\n")
 		fmt.Println("Opciones:\n1. Ver lista de productos\n2. Crear producto\n3. Eliminar producto\n4. Ver estadísticas\n5. Salir")
-		fmt.Printf("Ingrese una opcion: ")
+		fmt.Printf("Ingrese una opción: ")
 		var opcion string
 		fmt.Scan(&opcion)
 		switch opcion {

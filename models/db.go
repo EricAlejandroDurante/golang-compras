@@ -8,7 +8,7 @@ import (
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	database, err := gorm.Open("mysql", "root:1Q2w3e4r5t6y@tcp(127.0.0.1:3306)/tarea_1_sd")
+	database, err := gorm.Open("mysql", "admin:12345678@tcp(127.0.0.1:3306)/tarea_1_sd")
 	if err != nil {
 		panic(err)
 	}
