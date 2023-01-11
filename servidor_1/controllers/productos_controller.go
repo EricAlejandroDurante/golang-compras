@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"net/http"
-	"tarea_1_sds/models"
+	"servidor_1/models"
 
 	"github.com/gin-gonic/gin"
 )

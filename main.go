@@ -7,10 +7,19 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
-	//"tarea_1_sds/models"
 )
 
+type Despacho struct {
+	Id_despacho int    `json:"id_producto" gorm:"primaryKey;auto_increment;not_null"`
+	Estado      string `json:"nombre"`
+	Id_compra   int    `json:"cantidad_disponible"`
+}
+type ResponseCompra struct {
+	Id_compra   int `json:"id_compra"`
+	Id_despacho int `json:"id_despacho"`
+}
 type ProductoInput struct {
 	Nombre   string `json:"nombre"`
 	Cantidad int    `json:"cantidad_disponible"`
@@ -93,7 +102,7 @@ func UserOption() {
 	input := ClienteInput{Id_Cliente: id, Contrasena: password}
 	b, _ := json.Marshal(input)
 
-	resp, _ := http.Post("http://127.0.0.1:5000/api/clientes/iniciar_sesion", "application/json", bytes.NewBuffer(b))
+	resp, _ := http.Post("http://10.10.10.211:5000/api/clientes/iniciar_sesion", "application/json", bytes.NewBuffer(b))
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	bytes := []byte(body)
@@ -111,7 +120,7 @@ func OpcionesClientes(id int) {
 testLoop:
 	for {
 		fmt.Printf("\n")
-		fmt.Println("Opciones:\n1. Ver lista de productos\n2. Hacer compra\n3. Salir")
+		fmt.Println("Opciones:\n1. Ver lista de productos\n2. Hacer compra\n3. Consultar despacho\n4. Salir")
 		fmt.Printf("Ingrese una opción: ")
 		var opcion string
 		fmt.Scan(&opcion)
@@ -121,14 +130,30 @@ testLoop:
 		case "2":
 			hacerCompra(id)
 		case "3":
+			ConsultarDespacho()
+		case "4":
 			fmt.Println("")
 			break testLoop
 		}
 	}
 }
 
+func ConsultarDespacho() {
+	var id_despacho int
+	var despacho Despacho
+	fmt.Printf("Ingrese el ID del despacho: ")
+	fmt.Scan(&id_despacho)
+	resp, _ := http.Get("http://10.10.10.230:5000/api/clientes/estado_despacho/" + strconv.Itoa(id_despacho))
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	bytes := []byte(body)
+	json.Unmarshal([]byte(bytes), &despacho)
+	fmt.Printf("El estado del despacho es: %s\n", despacho.Estado)
+}
+
 func ListarProductos() {
-	resp, _ := http.Get("http://127.0.0.1:5000/api/productos")
+	resp, _ := http.Get("http://10.10.10.211:5000/api/productos")
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	bytes := []byte(body)
@@ -148,7 +173,7 @@ func hacerCompra(id int) {
 	var compra CompraInput
 	var detalle DetalleInput
 	///////////////////////////////////////////////////////////////
-	resp2, _ := http.Get("http://127.0.0.1:5000/api/productos")
+	resp2, _ := http.Get("http://10.10.10.211:5000/api/productos")
 	defer resp2.Body.Close()
 	body2, _ := io.ReadAll(resp2.Body)
 	bytes1 := []byte(body2)
@@ -160,9 +185,9 @@ func hacerCompra(id int) {
 	fmt.Printf("Ingrese cantidad de productos a comprar: ")
 	fmt.Scan(&cant_productos)
 	for j := 0; j < cant_productos; j++ {
-		var cantidad_nueva int
+		//var cantidad_nueva int
 		var montototalAux int
-		var prod ProductoInput
+		//var prod ProductoInput
 		fmt.Printf("Ingrese producto %d par id-cantidad: ", j+1)
 		fmt.Scan(&opcion)
 		comando := strings.Split(opcion, "-")
@@ -172,19 +197,7 @@ func hacerCompra(id int) {
 		for i := 0; i < len(producto); i++ {
 			if producto[i].Id_producto == id_producto {
 				montototalAux += producto[i].Precio_unitario * cantidad
-				cantidad_nueva = producto[i].Cantidad_disponible - cantidad
-				if cantidad_nueva >= 0 {
-					prod.Precio = producto[i].Precio_unitario
-					prod.Nombre = producto[i].Nombre
-					prod.Cantidad = cantidad_nueva
-					producto[i].Cantidad_disponible = cantidad_nueva
-				}
 			}
-		}
-		if cantidad_nueva < 0 {
-			fmt.Println("La cantidad seleccionada esta excedida, selecciona nuevamente ")
-			j--
-			continue
 		}
 
 		montototal += montototalAux
@@ -195,10 +208,18 @@ func hacerCompra(id int) {
 	}
 
 	b, _ := json.Marshal(compra)
-	_, _ = http.Post("http://127.0.0.1:5000/api/compras", "application/json", bytes.NewBuffer(b))
+	resp3, _ := http.Post("http://10.10.10.211:5000/api/compras", "application/json", bytes.NewBuffer(b))
+	defer resp3.Body.Close()
+	body3, _ := io.ReadAll(resp3.Body)
+	bytes3 := []byte(body3)
+	var responseCompra ResponseCompra
+	json.Unmarshal([]byte(bytes3), &responseCompra)
+
+	//Printear la volaita
 	fmt.Println("Gracias por su compra!")
 	fmt.Printf("Cantidad de productos comprados: %d\n", suma)
 	fmt.Printf("Monto total de la compra: %d\n", montototal)
+	fmt.Printf("El ID del despacho es: %d\n", responseCompra.Id_despacho)
 }
 
 func CrearProducto() {
@@ -214,7 +235,7 @@ func CrearProducto() {
 
 	input := ProductoInput{Nombre: nombre, Cantidad: disponibilidad, Precio: precio}
 	b, _ := json.Marshal(input)
-	resp, _ := http.Post("http://127.0.0.1:5000/api/productos", "application/json", bytes.NewBuffer(b))
+	resp, _ := http.Post("http://10.10.10.211:5000/api/productos", "application/json", bytes.NewBuffer(b))
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	bytes := []byte(body)
@@ -233,7 +254,7 @@ func EliminarProducto() {
 	//var accesoResponse CrearProductResponse
 	fmt.Printf("Ingrese id producto: ")
 	fmt.Scan(&id)
-	url := "http://127.0.0.1:5000/api/productos/" + id
+	url := "http://10.10.10.211:5000/api/productos/" + id
 	req, _ := http.NewRequest("DELETE", url, nil)
 	req.Header.Set("Accept", "application/json")
 	client := &http.Client{}
@@ -251,7 +272,7 @@ func EliminarProducto() {
 
 func Estadisticas() {
 	var respuesta EstadisticasResponse
-	resp, _ := http.Get("http://127.0.0.1:5000/api/estadisticas")
+	resp, _ := http.Get("http://10.10.10.211:5000/api/estadisticas")
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	bytes := []byte(body)

@@ -2,16 +2,17 @@ package controllers
 
 import (
 	"net/http"
+	"servidor_1/models"
+
 	"github.com/gin-gonic/gin"
-	"tarea_1_sds/models"
 )
 
-type ClienteInput struct{
-	Id_Cliente int `json:"id_cliente" binding:"required"`
+type ClienteInput struct {
+	Id_Cliente int    `json:"id_cliente" binding:"required"`
 	Contrasena string `json:"contrasena" binding:"required"`
 }
 
-func IniciarSesion(c *gin.Context){
+func IniciarSesion(c *gin.Context) {
 	var cliente models.Cliente
 	var input ClienteInput
 	if err := c.ShouldBindJSON(&input); err != nil {

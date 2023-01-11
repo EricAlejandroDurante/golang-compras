@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"net/http"
+	"servidor_1/models"
+
 	"github.com/gin-gonic/gin"
-	"tarea_1_sds/models"
 )
 
-func GetStats(c *gin.Context){
+func GetStats(c *gin.Context) {
 	var best_selling_product models.Detalle
 	var least_selling_product models.Detalle
 	var highest_profit_product models.Detalle

@@ -1,0 +1,15 @@
+syntax = "proto3";
+package test;
+option go_package = "github.com/example/path/gen;gen";
+service Proveedor{
+    rpc SuministrarProductos(Producto) returns (Respuesta);
+}
+message Producto{
+    string nombre = 1;
+    int32 cantidad = 2;
+    int32 id = 3;
+}
+
+message Respuesta{
+    string ack = 1;
+}
